@@ -1,0 +1,143 @@
+{{ define "main" -}}
+  {{- partial "contentheader.html" . -}}
+
+<!-- take input from the shortcode as a string -->
+{{- $source := .Page.Params.datasource -}}
+<!-- set the path to the `automateTable` location -->
+{{- $pathTo := .Site.Data -}}
+<!-- Use the index function to fetch the location object using the source string. Without this, Hugo doesn't understand what the `source` string means -->
+{{- $pathToSource := index $pathTo $source -}}
+
+
+  {{ range $pathToSource }}
+
+    {{/* 
+
+      Recursion:
+
+      
+      
+      Handling subcommand name inheritance:
+      
+      need to declare a var here for .name 
+      if on the first iteration, prepend `pxctl` to .name
+      if on further iterations, don't prepend `pxctl`
+      if on further iterations, 
+
+      I'll need to pass field data from commands to subcommands:
+      ---
+      name: cluster
+      subcmd:
+        name: activate
+        subcmd:
+            name: now
+      ---
+
+      will need to render as:
+      `cluster activate now`
+
+      I can probably do this by setting and combining a variable at the very beginning:
+      var = var + `name`
+
+      as long as it passes the scope downward when it recurses
+
+      if( x = 0 ) {
+        syntax = "pxctl" + .name
+        x++
+      }
+      else {
+        syntax = syntax + .name
+      }
+      
+    */}}
+    
+    <h2> Command Syntax </h2>
+
+    {{/* see above, */}}
+    {{ $syntax := printf "pxctl" .name }}
+    
+    
+    {{- printf "```text\n%s\n```" .name | markdownify -}}
+
+    {{- if or .long .short -}}
+      <h2> Description </h2>
+      {{- if .long -}}
+        {{- .long -}}
+      {{- else -}}
+        {{- .short -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- if .flags -}}
+      <h2> Flags </h2>
+      
+      <table class="cli-reference-table">
+        <th>Flag</th>
+        <th>Description</th>
+        {{- range .flags -}}
+        <tr>
+          <td>
+            <p>
+            {{- $.Scratch.Add "shorthand" "" -}}
+            {{- $.Scratch.Add "type" "" -}}
+            {{- if .singleLetterShorthand -}}
+              {{- $.Scratch.Add "shorthand" (printf ", `%s`" .singleLetterShorthand) -}}
+            {{- end -}}
+            {{- if .type -}}
+              {{- $.Scratch.Add "type" (printf " (`%s`)" .type) -}}
+            {{- end -}}
+            {{- printf "`%s`%s%s" .name ($.Scratch.Get "shorthand")  ($.Scratch.Get "type") | markdownify -}}
+            {{- $.Scratch.Delete "shorthand" -}}
+            {{- $.Scratch.Delete "type" -}}
+          </p>
+          </td>
+          <td>
+            <p>
+            {{- .use -}}
+            </p>
+          
+          {{- if .default -}}
+            <p>
+              {{- printf "_Default value:_ %v" .default | markdownify -}}
+            </p>
+            {{- end -}}
+          {{- if .required -}}
+            <p>
+              {{- printf "_Required:_ %t" .required | markdownify -}}
+            </p>
+          {{- end -}}
+          {{- if .validValues -}}
+            <i>Valid values:</i>
+            <ul>
+              {{- with .validValues -}}
+                {{- range . -}}
+                  <li>
+                    {{- printf " %v" . -}}
+                  </li>
+                {{- end -}}
+              {{- end -}}
+            </ul>
+          {{- end -}}
+          {{- if .validRange -}}
+            <p>
+              {{- printf "_Valid range:_ %s" .validRange | markdownify -}}
+            </p>
+          {{- end -}}
+          </td>
+        </tr>
+      
+        {{- end -}}
+      </table>
+      
+    {{- end -}}
+
+  {{- if .example -}}
+    <h2> Example </h2>
+    {{- printf "```text\n%s\n```" .example | markdownify -}}
+  {{- end -}}
+
+
+  {{- end -}}
+
+    {{- partial "prevnext.html" . }}
+{{ end }}
