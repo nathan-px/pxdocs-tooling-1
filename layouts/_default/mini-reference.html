@@ -1,0 +1,39 @@
+{{ define "main" -}}
+  {{- partial "contentheader.html" . -}}
+
+  <!-- take input from the shortcode as a string -->
+  {{- $source := .Page.Params.datasource -}}
+  <!-- set the path to the `automateTable` location -->
+  {{- $pathTo := .Site.Data -}}
+  <!-- Use the index function to fetch the location object using the source string. Without this, Hugo doesn't understand what the `source` string means -->
+  {{- $pathToSource := index $pathTo $source -}}
+
+  
+  {{ partial "recursive.html" (dict "context" . "pathToSource" $pathToSource) }}
+  {{/* (dict "context" . "pathToSource" $pathToSource) */}}
+  
+  
+
+  
+
+{{/* end main */}}
+{{ end }}
+
+{{ define "partials/recursive.html" }}
+  {{- $pathToSource := .pathToSource }}
+  {{ range $pathToSource }}
+
+    <h2> Command Syntax </h2>
+
+    {{- printf "```text\n%s\n```" .name | markdownify -}}
+
+    {{- if .subcmd -}}
+      {{/* {{ printf "%s" .subcmd }} */}}
+      {{/* {{- $pathToSource := index $pathToSource .subcmd }} */}}
+      {{/* {{ partial "recursive.html" (dict "context" . "pathToSource" $pathToSource) }} */}}
+    {{- end -}}
+
+  {{/* end range pathToSource */}}  
+  {{- end -}}
+{{/* end recursive */}}  
+{{- end -}}
