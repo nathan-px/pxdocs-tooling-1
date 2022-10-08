@@ -28,9 +28,7 @@
     {{- printf "```text\n%s\n```" .name | markdownify -}}
 
     {{- if .subcmd -}}
-      {{/* {{ printf "%s" .subcmd }} */}}
-      {{/* {{- $pathToSource := index $pathToSource .subcmd }} */}}
-      {{/* {{ partial "recursive.html" (dict "context" . "pathToSource" $pathToSource) }} */}}
+      {{ partial "recursive.html" (dict "context" . "pathToSource" .subcmd) }}
     {{- end -}}
 
   {{/* end range pathToSource */}}  
