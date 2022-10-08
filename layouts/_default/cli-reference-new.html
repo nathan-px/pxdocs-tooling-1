@@ -1,66 +1,29 @@
 {{ define "main" -}}
   {{- partial "contentheader.html" . -}}
 
-<!-- take input from the shortcode as a string -->
-{{- $source := .Page.Params.datasource -}}
-<!-- set the path to the `automateTable` location -->
-{{- $pathTo := .Site.Data -}}
-<!-- Use the index function to fetch the location object using the source string. Without this, Hugo doesn't understand what the `source` string means -->
-{{- $pathToSource := index $pathTo $source -}}
+  <!-- take input from the shortcode as a string -->
+  {{- $source := .Page.Params.datasource -}}
+  <!-- set the path to the `automateTable` location -->
+  {{- $pathTo := .Site.Data -}}
+  <!-- Use the index function to fetch the location object using the source string. Without this, Hugo doesn't understand what the `source` string means -->
+  {{- $pathToSource := index $pathTo $source -}}
 
+  
+  {{ partial "recursive.html" (dict "context" . "pathToSource" $pathToSource) }}
+  
+{{/* end main */}}
+{{ end }}
 
-  {{ range $pathToSource }}
+{{ define "partials/recursive.html" }}
+  {{- $pathToSource := .pathToSource }}
+  {{ range .pathToSource }}
 
-    {{/* 
+    <h2>{{ .name }}</h2>
 
-      Recursion:
-
-      
-      
-      Handling subcommand name inheritance:
-      
-      need to declare a var here for .name 
-      if on the first iteration, prepend `pxctl` to .name
-      if on further iterations, don't prepend `pxctl`
-      if on further iterations, 
-
-      I'll need to pass field data from commands to subcommands:
-      ---
-      name: cluster
-      subcmd:
-        name: activate
-        subcmd:
-            name: now
-      ---
-
-      will need to render as:
-      `cluster activate now`
-
-      I can probably do this by setting and combining a variable at the very beginning:
-      var = var + `name`
-
-      as long as it passes the scope downward when it recurses
-
-      if( x = 0 ) {
-        syntax = "pxctl" + .name
-        x++
-      }
-      else {
-        syntax = syntax + .name
-      }
-      
-    */}}
-    
-    <h2> Command Syntax </h2>
-
-    {{/* see above, */}}
-    {{ $syntax := printf "pxctl" .name }}
-    
-    
     {{- printf "```text\n%s\n```" .name | markdownify -}}
 
     {{- if or .long .short -}}
-      <h2> Description </h2>
+      <h3> Description </h3>
       {{- if .long -}}
         {{- .long -}}
       {{- else -}}
@@ -68,8 +31,13 @@
       {{- end -}}
     {{- end -}}
 
+    {{- if .example -}}
+      <h3> Example </h3>
+      {{- printf "```text\n%s\n```" .example | markdownify -}}
+    {{- end -}}
+
     {{- if .flags -}}
-      <h2> Flags </h2>
+      <h3> Flags </h3>
       
       <table class="cli-reference-table">
         <th>Flag</th>
@@ -131,13 +99,11 @@
       
     {{- end -}}
 
-  {{- if .example -}}
-    <h2> Example </h2>
-    {{- printf "```text\n%s\n```" .example | markdownify -}}
+    {{- if .subcmd -}}
+      {{ partial "recursive.html" (dict "context" . "pathToSource" .subcmd) }}
+    {{- end -}}
+
+  {{/* end range pathToSource */}}  
   {{- end -}}
-
-
-  {{- end -}}
-
-    {{- partial "prevnext.html" . }}
-{{ end }}
+{{/* end recursive */}}  
+{{- end -}}
