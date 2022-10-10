@@ -21,6 +21,7 @@
   {{- $countvar := .countvar }}
 
   {{ range .pathToSource }}
+  {{if not .hidden }}
 
     {{ if eq $countvar 0 }}
       {{ $fullcommand = printf "pxctl %s" .name }}
@@ -33,7 +34,7 @@
     {{- printf "```text\n%s\n```" $fullcommand | markdownify -}}
 
     {{- if or .long .short -}}
-      <h3> Description </h3>
+      <h4> Description </h4>
       {{- if .long -}}
         {{- .long -}}
       {{- else -}}
@@ -42,12 +43,12 @@
     {{- end -}}
 
     {{- if .example -}}
-      <h3> Example </h3>
+      <h4> Example </h4>
       {{- printf "```text\n%s\n```" .example | markdownify -}}
     {{- end -}}
 
     {{- if .flags -}}
-      <h3> Flags </h3>
+      <h4> Flags </h4>
       
       <table class="cli-reference-table">
         <th>Flag</th>
@@ -58,8 +59,8 @@
             <p>
             {{- $.Scratch.Add "shorthand" "" -}}
             {{- $.Scratch.Add "type" "" -}}
-            {{- if .singleLetterShorthand -}}
-              {{- $.Scratch.Add "shorthand" (printf ", `%s`" .singleLetterShorthand) -}}
+            {{- if (index . "single-letter-shorthand") -}}
+              {{- $.Scratch.Add "shorthand" (printf ", `%s`" (index . "single-letter-shorthand")) -}}
             {{- end -}}
             {{- if .type -}}
               {{- $.Scratch.Add "type" (printf " (`%s`)" .type) -}}
@@ -113,9 +114,11 @@
       {{ $countvar = 1}}
       {{ partial "recursive.html" (dict "context" . "pathToSource" .subcmd "fullcommand" $fullcommand "countvar" $countvar) }}
     {{- end -}}
+    
+    {{ end }}
 
     {{ $countvar = 0 }}
-
+  
   {{/* end range pathToSource */}}  
   {{- end -}}
 {{/* end recursive */}}  
