@@ -22,18 +22,15 @@
 
   {{ range .pathToSource }}
 
-    <h2>{{ .name }}</h2>
-
-    {{/* {{ if not findRE "(pxctl)(.*)" $fullcommand }}  */}}
     {{ if eq $countvar 0 }}
       {{ $fullcommand = printf "pxctl %s" .name }}
     {{ else }}
       {{ $fullcommand = printf "%s %s" $fullcommand .name }}
     {{ end }}
 
-    <h4>{{ $fullcommand }}</h4>
+    <h2>{{ $fullcommand }}</h2>
 
-    {{- printf "```text\n%s\n```" .name | markdownify -}}
+    {{- printf "```text\n%s\n```" $fullcommand | markdownify -}}
 
     {{- if or .long .short -}}
       <h3> Description </h3>
