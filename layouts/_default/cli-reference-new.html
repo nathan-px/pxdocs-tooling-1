@@ -7,18 +7,31 @@
   {{- $pathTo := .Site.Data -}}
   <!-- Use the index function to fetch the location object using the source string. Without this, Hugo doesn't understand what the `source` string means -->
   {{- $pathToSource := index $pathTo $source -}}
+  {{ $countvar := 0 }}
 
   
-  {{ partial "recursive.html" (dict "context" . "pathToSource" $pathToSource) }}
+  {{ partial "recursive.html" (dict "context" . "pathToSource" $pathToSource "countvar" $countvar) }}
   
 {{/* end main */}}
 {{ end }}
 
 {{ define "partials/recursive.html" }}
   {{- $pathToSource := .pathToSource }}
+  {{- $fullcommand := .fullcommand }}
+  {{- $countvar := .countvar }}
+
   {{ range .pathToSource }}
 
     <h2>{{ .name }}</h2>
+
+    {{/* {{ if not findRE "(pxctl)(.*)" $fullcommand }}  */}}
+    {{ if eq $countvar 0 }}
+      {{ $fullcommand = printf "pxctl %s" .name }}
+    {{ else }}
+      {{ $fullcommand = printf "%s %s" $fullcommand .name }}
+    {{ end }}
+
+    <h4>{{ $fullcommand }}</h4>
 
     {{- printf "```text\n%s\n```" .name | markdownify -}}
 
@@ -100,8 +113,11 @@
     {{- end -}}
 
     {{- if .subcmd -}}
-      {{ partial "recursive.html" (dict "context" . "pathToSource" .subcmd) }}
+      {{ $countvar = 1}}
+      {{ partial "recursive.html" (dict "context" . "pathToSource" .subcmd "fullcommand" $fullcommand "countvar" $countvar) }}
     {{- end -}}
+
+    {{ $countvar = 0 }}
 
   {{/* end range pathToSource */}}  
   {{- end -}}
