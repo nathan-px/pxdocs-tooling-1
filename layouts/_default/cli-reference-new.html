@@ -8,9 +8,10 @@
   <!-- Use the index function to fetch the location object using the source string. Without this, Hugo doesn't understand what the `source` string means -->
   {{- $pathToSource := index $pathTo $source -}}
   {{ $countvar := 0 }}
+  {{ $fullcommand := slice "pxctl" }}
 
   
-  {{ partial "recursive.html" (dict "context" . "pathToSource" $pathToSource "countvar" $countvar) }}
+  {{ partial "recursive.html" (dict "context" . "pathToSource" $pathToSource "fullcommand" $fullcommand "countvar" $countvar) }}
   
 {{/* end main */}}
 {{ end }}
@@ -21,103 +22,119 @@
   {{- $countvar := .countvar }}
 
   {{ range .pathToSource }}
-  {{if not .hidden }}
+    {{if not .hidden }}
 
-    {{ if eq $countvar 0 }}
-      {{ $fullcommand = printf "pxctl %s" .name }}
-    {{ else }}
-      {{ $fullcommand = printf "%s %s" $fullcommand .name }}
-    {{ end }}
+      {{ $fullcommand = append .name $fullcommand }}
 
-    <h2>{{ $fullcommand }}</h2>
+      <h2>
+        {{range $fullcommand }}
+          {{.}}
+        {{end}}
+      </h2>
 
-    {{- printf "```text\n%s\n```" $fullcommand | markdownify -}}
+      {{- printf "```text\n" | markdownify -}}
+      {{range $fullcommand }}
+        {{.}}
+      {{end}}
+      {{- printf "\n```" | markdownify -}}
 
-    {{- if or .long .short -}}
-      <h4> Description </h4>
-      {{- if .long -}}
-        {{- .long -}}
-      {{- else -}}
-        {{- .short -}}
-      {{- end -}}
-    {{- end -}}
+      {{- printf "```text\n%s\n```" $fullcommand | markdownify -}}
 
-    {{- if .example -}}
-      <h4> Example </h4>
-      {{- printf "```text\n%s\n```" .example | markdownify -}}
-    {{- end -}}
 
-    {{- if .flags -}}
-      <h4> Flags </h4>
-      
-      <table class="cli-reference-table">
-        <th>Flag</th>
-        <th>Description</th>
-        {{- range .flags -}}
-        <tr>
-          <td>
-            <p>
-            {{- $.Scratch.Add "shorthand" "" -}}
-            {{- $.Scratch.Add "type" "" -}}
-            {{- if (index . "single-letter-shorthand") -}}
-              {{- $.Scratch.Add "shorthand" (printf ", `%s`" (index . "single-letter-shorthand")) -}}
-            {{- end -}}
-            {{- if .type -}}
-              {{- $.Scratch.Add "type" (printf " (`%s`)" .type) -}}
-            {{- end -}}
-            {{- printf "`%s`%s%s" .name ($.Scratch.Get "shorthand")  ($.Scratch.Get "type") | markdownify -}}
-            {{- $.Scratch.Delete "shorthand" -}}
-            {{- $.Scratch.Delete "type" -}}
-          </p>
-          </td>
-          <td>
-            <p>
-            {{- .use -}}
-            </p>
-          
-          {{- if .default -}}
-            <p>
-              {{- printf "_Default value:_ %v" .default | markdownify -}}
-            </p>
-            {{- end -}}
-          {{- if .required -}}
-            <p>
-              {{- printf "_Required:_ %t" .required | markdownify -}}
-            </p>
-          {{- end -}}
-          {{- if .validValues -}}
-            <i>Valid values:</i>
-            <ul>
-              {{- with .validValues -}}
-                {{- range . -}}
-                  <li>
-                    {{- printf " %v" . -}}
-                  </li>
-                {{- end -}}
-              {{- end -}}
-            </ul>
-          {{- end -}}
-          {{- if .validRange -}}
-            <p>
-              {{- printf "_Valid range:_ %s" .validRange | markdownify -}}
-            </p>
-          {{- end -}}
-          </td>
-        </tr>
-      
+      {{- if or .long .short -}}
+        <h4> Description </h4>
+        {{- if .long -}}
+          {{- .long -}}
+        {{- else -}}
+          {{- .short -}}
         {{- end -}}
-      </table>
-      
-    {{- end -}}
+      {{- end -}}
 
-    {{- if .subcmd -}}
-      {{ $countvar = 1}}
-      {{ partial "recursive.html" (dict "context" . "pathToSource" .subcmd "fullcommand" $fullcommand "countvar" $countvar) }}
-    {{- end -}}
+      {{- if .example -}}
+        <h4> Example </h4>
+        {{- printf "```text\n%s\n```" .example | markdownify -}}
+      {{- end -}}
+
+      {{- if .flags -}}
+        <h4> Flags </h4>
+        
+        <table class="cli-reference-table">
+          <th>Flag</th>
+          <th>Description</th>
+          {{- range .flags -}}
+          <tr>
+            <td>
+              <p>
+              {{- $.Scratch.Add "shorthand" "" -}}
+              {{- $.Scratch.Add "type" "" -}}
+              {{- if (index . "single-letter-shorthand") -}}
+                {{- $.Scratch.Add "shorthand" (printf ", `%s`" (index . "single-letter-shorthand")) -}}
+              {{- end -}}
+              {{- if .type -}}
+                {{- $.Scratch.Add "type" (printf " (`%s`)" .type) -}}
+              {{- end -}}
+              {{- printf "`%s`%s%s" .name ($.Scratch.Get "shorthand")  ($.Scratch.Get "type") | markdownify -}}
+              {{- $.Scratch.Delete "shorthand" -}}
+              {{- $.Scratch.Delete "type" -}}
+            </p>
+            </td>
+            <td>
+              <p>
+              {{- .use -}}
+              </p>
+            
+            {{- if .default -}}
+              <p>
+                {{- printf "_Default value:_ %v" .default | markdownify -}}
+              </p>
+              {{- end -}}
+            {{- if .required -}}
+              <p>
+                {{- printf "_Required:_ %t" .required | markdownify -}}
+              </p>
+            {{- end -}}
+            {{- if .validValues -}}
+              <i>Valid values:</i>
+              <ul>
+                {{- with .validValues -}}
+                  {{- range . -}}
+                    <li>
+                      {{- printf " %v" . -}}
+                    </li>
+                  {{- end -}}
+                {{- end -}}
+              </ul>
+            {{- end -}}
+            {{- if .validRange -}}
+              <p>
+                {{- printf "_Valid range:_ %s" .validRange | markdownify -}}
+              </p>
+            {{- end -}}
+            </td>
+          </tr>
+        
+          {{- end -}}
+        </table>
+        
+      {{- end -}}
+
+      {{- if .subcmd -}}
+        {{ $countvar = 1}}
+        {{ partial "recursive.html" (dict "context" . "pathToSource" .subcmd "fullcommand" $fullcommand) }}
+      {{- end -}}
     
     {{ end }}
-
-    {{ $countvar = 0 }}
+    
+    
+    {{/* find the length of the array */}}
+    {{ $numSlices := len $fullcommand }}
+    {{ printf "numSlices length: %s\n" $numSlices}}
+    {{/* choose the array elements we want to keep */}}
+    {{ $numSlices = sub $numSlices 1}}
+    {{ printf "numSlices length minus 1: %s\n" $numSlices}}
+    {{/* save the new array as only that*/}}
+    {{ $fullcommand = first $numSlices $fullcommand }}
+    {{ printf "numSlices array contents: %s\n" $fullcommand}}
   
   {{/* end range pathToSource */}}  
   {{- end -}}
