@@ -130,20 +130,22 @@
         {{ partial "recursive.html" (dict "context" . "pathToSource" .subcmd "fullcommand" $fullcommand) }}
       {{- end -}}
     
+      {{/* find the length of the array */}}
+      {{ $numSlices := len $fullcommand }}
+      
+      {{/* prevent this from running if there's only 1 slice in the array*/}}
+      {{if gt $numSlices 1 }}
+        {{/* choose the array elements we want to keep */}}
+        {{ $numSlices = sub $numSlices 1}}
+      {{ end }}
+      
+      {{/* save the new array as only that*/}}
+      {{ $fullcommand = first $numSlices $fullcommand }}
+
     {{ end }}
     
     
-    {{/* find the length of the array */}}
-    {{ $numSlices := len $fullcommand }}
-    
-    {{/* prevent this from running if there's only 1 slice in the array*/}}
-    {{if gt $numSlices 1 }}
-      {{/* choose the array elements we want to keep */}}
-      {{ $numSlices = sub $numSlices 1}}
-    {{ end }}
-    
-    {{/* save the new array as only that*/}}
-    {{ $fullcommand = first $numSlices $fullcommand }}
+
     
   
   {{/* end range pathToSource */}}  
