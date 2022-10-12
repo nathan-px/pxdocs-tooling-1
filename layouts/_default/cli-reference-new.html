@@ -20,6 +20,7 @@
   {{- $pathToSource := .pathToSource }}
   {{- $fullcommand := .fullcommand }}
   {{- $countvar := .countvar }}
+  {{ $outputcommand := "" }}
 
   {{ range .pathToSource }}
     {{if not .hidden }}
@@ -32,15 +33,20 @@
         {{end}}
       </h2>
 
-      {{- printf "```text\n" | markdownify -}}
-      {{range $fullcommand }}
-        {{.}}
+      {{/*
+        this ugly code fragment builds a single string from the $fullcommand slice,
+        prints that output into a markdown code box,
+        and then zeroes out the string (just in case)
+        */}}
+      {{ range $fullcommand }}
+        {{ $outputcommand = printf "%s %s" $outputcommand . }}
       {{end}}
-      {{- printf "\n```" | markdownify -}}
+      {{- printf "```text\n%s\n```" $outputcommand | markdownify -}}
+      {{ $outputcommand = "" }}
 
-      {{- printf "```text\n%s\n```" $fullcommand | markdownify -}}
-
-
+      {{/*
+        print either the long or short descriptions, if they exist
+        */}}
       {{- if or .long .short -}}
         <h4> Description </h4>
         {{- if .long -}}
@@ -50,6 +56,9 @@
         {{- end -}}
       {{- end -}}
 
+      {{/*
+        print the example, if it exists
+        */}}
       {{- if .example -}}
         <h4> Example </h4>
         {{- printf "```text\n%s\n```" .example | markdownify -}}
@@ -65,17 +74,15 @@
           <tr>
             <td>
               <p>
-              {{- $.Scratch.Add "shorthand" "" -}}
-              {{- $.Scratch.Add "type" "" -}}
+              {{- $shorthand := "" -}}
+              {{- $type := "" -}}
               {{- if (index . "single-letter-shorthand") -}}
-                {{- $.Scratch.Add "shorthand" (printf ", `%s`" (index . "single-letter-shorthand")) -}}
+                {{- $shorthand = (printf ", `%s`" (index . "single-letter-shorthand")) -}}
               {{- end -}}
               {{- if .type -}}
-                {{- $.Scratch.Add "type" (printf " (`%s`)" .type) -}}
+                {{- $type = (printf " (`%s`)" .type) -}}
               {{- end -}}
-              {{- printf "`%s`%s%s" .name ($.Scratch.Get "shorthand")  ($.Scratch.Get "type") | markdownify -}}
-              {{- $.Scratch.Delete "shorthand" -}}
-              {{- $.Scratch.Delete "type" -}}
+              {{- printf "`--%s`%s%s" .name $shorthand $type | markdownify -}}
             </p>
             </td>
             <td>
@@ -128,13 +135,13 @@
     
     {{/* find the length of the array */}}
     {{ $numSlices := len $fullcommand }}
-    {{ printf "numSlices length: %s\n" $numSlices}}
+    
     {{/* choose the array elements we want to keep */}}
     {{ $numSlices = sub $numSlices 1}}
-    {{ printf "numSlices length minus 1: %s\n" $numSlices}}
+    
     {{/* save the new array as only that*/}}
     {{ $fullcommand = first $numSlices $fullcommand }}
-    {{ printf "numSlices array contents: %s\n" $fullcommand}}
+    
   
   {{/* end range pathToSource */}}  
   {{- end -}}
