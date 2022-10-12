@@ -77,7 +77,7 @@
               {{- $shorthand := "" -}}
               {{- $type := "" -}}
               {{- if (index . "single-letter-shorthand") -}}
-                {{- $shorthand = (printf ", `%s`" (index . "single-letter-shorthand")) -}}
+                {{- $shorthand = (printf ", `-%s`" (index . "single-letter-shorthand")) -}}
               {{- end -}}
               {{- if .type -}}
                 {{- $type = (printf " (`%s`)" .type) -}}
